@@ -1,7 +1,7 @@
-import { ComponentType } from "react"
-import Home from "../pages/Home"
-import About from "../pages/About"
-import Search from "../pages/Search"
+import { ComponentType, lazy } from "react"
+
+const LazyHomePage = lazy( () => import("../pages/Home"))
+const LazySearchPage = lazy( () => import("../pages/Search"))
 
 export type Route = {
     path: string
@@ -12,7 +12,7 @@ export type Route = {
 export const routes : Route[] = [
     {
         path: '/',
-        Component: Home
+        Component: LazyHomePage
     },
     // {
     //     path: '/about',
@@ -20,6 +20,6 @@ export const routes : Route[] = [
     // },
     {
         path: '/search/:query',
-        Component: Search
+        Component: LazySearchPage
     }
 ]

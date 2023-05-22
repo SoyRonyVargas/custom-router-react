@@ -4,73 +4,66 @@ import { match } from 'path-to-regexp'
 import { Route } from "./routes"
 
 type ConfigRouter = {
-  defaultComponent?:ComponentType
+  defaultComponent?: ComponentType
   children?: ReactNode
-  routes: Route[]
+  routes?: Route[]
 }
 
 const DefaultComponent = () => <h1>404</h1>
 
-const Router = ( { routes = [] , children } :ConfigRouter ) => {
+const Router = ({ routes = [], children }: ConfigRouter) => {
+  // Estado para almacenar la ruta actual
+  const [currentPath, setCurrentPath] = useState(window.location.pathname)
 
-    const [ currentPath , setCurrentPath ] = useState(window.location.pathname)
+  useEffect(() => {
+    const onLocationChange = () => {
+      // Actualizar la ruta actual cuando cambie la ubicación del navegador
+      setCurrentPath(window.location.pathname)
+    }
 
-    useEffect( () => {
-  
-      const onLocationChange = () => {
-  
-        setCurrentPath(window.location.pathname)
-        
-      }
-  
-      window.addEventListener(NAVIGATION_EVENT.PUSH_STATE , onLocationChange)
-      
-      window.addEventListener(NAVIGATION_EVENT.POP_STATE , onLocationChange)
-      
-      return () => {
-        window.removeEventListener(NAVIGATION_EVENT.PUSH_STATE , onLocationChange)
-        window.removeEventListener(NAVIGATION_EVENT.POP_STATE , onLocationChange)
-      }
-      
-    }, [])
+    // Escuchar eventos de cambio de ubicación
+    window.addEventListener(NAVIGATION_EVENT.PUSH_STATE, onLocationChange)
+    window.addEventListener(NAVIGATION_EVENT.POP_STATE, onLocationChange)
 
-    let routeParams = {}
+    // Limpiar el evento de escucha cuando el componente se desmonta
+    return () => {
+      window.removeEventListener(NAVIGATION_EVENT.PUSH_STATE, onLocationChange)
+      window.removeEventListener(NAVIGATION_EVENT.POP_STATE, onLocationChange)
+    }
+  }, [])
 
-    // AGREGAR RUTAS POR LA PROP CHILDREN
+  let routeParams = {}
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const routesFromChildren = Children.map( children, ( child:any ) => {
+  // Agregar rutas proporcionadas mediante la prop "children"
+  const routesFromChildren = Children.map(children, (child: any) => {
+    const { props, type } = child
+    const { name } = type
 
-      const { props, type } = child;
+    const isRoute = name === 'Route'
 
-      const { name } = type;
+    return isRoute ? props : null
+  })?.filter(Boolean) as Route[]
 
-      const isRoute = name === 'Route'
+  // Combinar las rutas proporcionadas en las props y las rutas de children
+  const routesToUse = routes.concat(routesFromChildren)
 
-      return isRoute ? props : null;
-      
-    })?.filter(Boolean) as Route[]
+  // Encontrar la ruta coincidente para la ruta actual
+  const Page =
+    routesToUse.find(({ path }) => {
+      if (path === currentPath) return true
 
-    const routesToUse = routes.concat(routesFromChildren) 
-
-    const Page = routesToUse.find( ({ path }) => {
-
-      if( path === currentPath ) return true;
-
-      const matcherUrl = match( path , { decode: decodeURIComponent })
-
+      const matcherUrl = match(path, { decode: decodeURIComponent })
       const matched = matcherUrl(currentPath)
 
-      if( !matched ) return false;
+      if (!matched) return false
 
       routeParams = matched.params // { query: 'ReactJS' }
 
-      return true;
-
+      return true
     })?.Component || DefaultComponent
 
-    return <Page routeParams={routeParams} />;
-
+  // Renderizar el componente correspondiente a la ruta actual
+  return <Page routeParams={routeParams} />
 }
 
 export default Router
