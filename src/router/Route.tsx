@@ -8,9 +8,7 @@ type Props = {
 
 const Route = ( { path , Component }: Props ) => {
   return (
-    <div>
-        
-    </div>
+    <div/>
   )
 }
 

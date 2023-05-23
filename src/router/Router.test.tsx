@@ -1,17 +1,15 @@
-import { render , screen , cleanup } from "@testing-library/react"
+import { render , screen , cleanup , fireEvent } from "@testing-library/react"
 import { describe , it , expect, beforeEach , vi } from 'vitest'
 import { getCurrentPath } from '../utils/getCurrentPath'
-import { Route } from './routes'
 import Router from './Router'
-import { lazy } from 'react'
+import Route from './Route'
 
 vi.mock( '../utils/getCurrentPath' , () => ({
     getCurrentPath: vi.fn()
 }))
 
-const LazySearchPage = lazy( () => import("../pages/Search"))
-const LazyAboutPage = lazy( () => import("../pages/About"))
-const LazyHomePage = lazy( () => import("../pages/Home"))
+import About from "../pages/About"
+import Home from "../pages/Home"
 
 
 describe("Test al router" , () => {
@@ -40,34 +38,43 @@ describe("Test al router" , () => {
 
     it("Deberia renderizar las rutas" , () => {
 
-        // getCurrentPath.
-
-        getCurrentPath.mockReturnValue("/about")
-
-        // mock.mockImplementationOnce(() => '/')
-
-        // mock()
+        getCurrentPath?.mockReturnValue("/about")
 
         const routes : Route[] = [
             {
                 path: '/',
-                Component: LazyHomePage
+                Component: Home
             },
             {
                 path: '/about',
-                Component: LazyAboutPage
+                Component: About
             },
-            {
-                path: '/search/:query',
-                Component: LazySearchPage
-            }
         ]
 
         render(<Router routes={routes}/>)
 
         screen.debug();
+        
+        expect(screen.getByRole("heading")).exist
+        
+    })
 
-        expect(screen.findByText("404")).toBeTruthy()
+    it("Deberia navegar entre rutas al navegar entre links" , () => {
+        
+        getCurrentPath?.mockReturnValue("/")
+
+        render(
+            <Router>
+                <Route path="/" Component={Home} />
+                <Route path="/about" Component={About} />
+            </Router>
+        )
+
+        fireEvent.click(screen.getByText("Ir a about"))
+
+        expect(screen.findByText("About")).toBeTruthy()
+        
+        screen.debug()
 
     })
 

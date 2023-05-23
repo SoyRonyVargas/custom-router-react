@@ -53,11 +53,12 @@ const Router = ({ routes = [], children }: ConfigRouter) => {
   const routesToUse = routes.concat(routesFromChildren).filter(Boolean)
 
   // Encontrar la ruta coincidente para la ruta actual
-  const Page =
-    routesToUse.find(({ path }) => {
+  const Page = routesToUse.find(({ path }) => {
+      
       if (path === currentPath) return true
 
       const matcherUrl = match(path, { decode: decodeURIComponent })
+
       const matched = matcherUrl(currentPath)
 
       if (!matched) return false
@@ -65,7 +66,10 @@ const Router = ({ routes = [], children }: ConfigRouter) => {
       routeParams = matched.params // { query: 'ReactJS' }
 
       return true
+
     })?.Component || DefaultComponent
+
+    console.log(Page);
 
   // Renderizar el componente correspondiente a la ruta actual
   return <Page routeParams={routeParams} />
