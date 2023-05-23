@@ -2,6 +2,7 @@ import { Children, ComponentType, ReactNode, useEffect, useState } from "react"
 import { NAVIGATION_EVENT } from "../utils/variables"
 import { match } from 'path-to-regexp'
 import { Route } from "./routes"
+import { getCurrentPath } from "../utils/getCurrentPath"
 
 type ConfigRouter = {
   defaultComponent?: ComponentType
@@ -13,12 +14,16 @@ const DefaultComponent = () => <h1>404</h1>
 
 const Router = ({ routes = [], children }: ConfigRouter) => {
   // Estado para almacenar la ruta actual
-  const [currentPath, setCurrentPath] = useState(window.location.pathname)
+  const [currentPath, setCurrentPath] = useState(getCurrentPath())
 
   useEffect(() => {
+    
     const onLocationChange = () => {
+      
       // Actualizar la ruta actual cuando cambie la ubicación del navegador
-      setCurrentPath(window.location.pathname)
+      
+      setCurrentPath(getCurrentPath())
+
     }
 
     // Escuchar eventos de cambio de ubicación
@@ -45,7 +50,7 @@ const Router = ({ routes = [], children }: ConfigRouter) => {
   })?.filter(Boolean) as Route[]
 
   // Combinar las rutas proporcionadas en las props y las rutas de children
-  const routesToUse = routes.concat(routesFromChildren)
+  const routesToUse = routes.concat(routesFromChildren).filter(Boolean)
 
   // Encontrar la ruta coincidente para la ruta actual
   const Page =
